@@ -7,8 +7,8 @@ ENTITY rpn IS
         NUMDISPLAYS: integer := 4;
         N_BITS_NUM: integer := 4; -- pi
 		NUM_MEMORY: integer := 4;  -- numero limite para tamanho da pilha
-        CMD_DEBOUNCE_T_MS: integer := 5; --700;
-        FCLK: integer := 1000 ---50e6
+        CMD_DEBOUNCE_T_MS: integer := 700; --700;
+        FCLK: integer := 50e6 ---50e6
 	);
 	PORT(
         clk: in std_logic;
@@ -21,7 +21,7 @@ END ENTITY;
 ARCHITECTURE arch OF rpn IS
 	COMPONENT debounce IS
 		GENERIC(
-				time_ms : integer := 2; ---100;
+				time_ms : integer := 100; ---100;
 				freq_clk: integer := FCLK--- 50e6
 		);
 		PORT(
@@ -37,7 +37,7 @@ signal reg: memory;
 signal numIn: std_logic_vector(N_BITS_NUM - 1 downto 0);
 signal calcResult: integer range 0 to 2 ** N_BITS_NUM;
 
-signal resultado: std_logic_vector(NUMDISPLAYS*7 - 1 downto 0); -- Adicionado para converter o integer
+signal resultado: std_logic_vector(NUMDISPLAYS*4 - 1 downto 0); -- Adicionado para converter o integer
 type hexa is array (NUMDISPLAYS-1 downto 0) of std_logic_vector(3 downto 0);
 signal hex: hexa;
 
@@ -145,11 +145,11 @@ BEGIN
 	calcResult <= 	reg(0) + reg(1) WHEN opIn = "001" ELSE
 					reg(1) - reg(0) WHEN opIn = "010" ELSE
 					to_integer(to_unsigned(reg(1) * reg(0), N_BITS_NUM)) WHEN opIn = "011" ELSE 
-					reg(1) / reg(0) WHEN opIn = "011" and reg(0) /= 0 ELSE
-					0;
+					reg(1) / reg(0) WHEN opIn = "101" and reg(0) /= 0 ELSE
+					15;
 
     -- falta enviar rpn_stack(0) para resultado e mostrar nos displays. ------
-    resultado <= std_logic_vector(to_unsigned(reg(0), NUMDISPLAYS*7)); -- Add
+    resultado <= std_logic_vector(to_unsigned(reg(0), NUMDISPLAYS*4)); -- Add
     
     SSD_driver: for i in 1 to NUMDISPLAYS generate
     hex(i-1) <= resultado(4*i-1 downto 4*(i-1));
